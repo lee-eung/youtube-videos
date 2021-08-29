@@ -1,18 +1,18 @@
 <script>
-import CopyClipBoard from './CopyClipBoard.svelte';
+import CopyClipBoard from './CopyClipBoard.svelte'
 
 let api_key = ''
 let playlist_id = ''
 let progress_log = ''
 let result_json = ''
-let how_many_videos = 50;
-let need_videos = -1;
-let num_of_videos_class = 'hidden';
-let copy_button_class = 'hidden';
-let api_key_input_msg = '';
-let playlist_id_input_msg = '';
-let copy_result_msg = '';
-let get_all_text_class = '';
+let how_many_videos = 50
+let need_videos = -1
+let num_of_videos_class = 'hidden'
+let copy_button_class = 'hidden'
+let api_key_input_msg = ''
+let playlist_id_input_msg = ''
+let copy_result_msg = ''
+let get_all_text_class = ''
 let keep_going = true
 let api_key_input
 let playlist_id_input
@@ -64,8 +64,8 @@ function isInputOk() {
 function initializeAll() {
 	api_key_input_msg = ''
 	playlist_id_input_msg = ''
-	copy_result_msg = '';
-	copy_button_class = 'hidden';
+	copy_result_msg = ''
+	copy_button_class = 'hidden'
 	progress_log = ''
 	result_json = ''
 	need_videos = checkbox.checked ? -1 : how_many_videos
@@ -137,7 +137,7 @@ function checkKeepGoing(result) {
 	})
 	if (!keep_going) {
 		clearInterval(interval)
-		copy_button_class = '';
+		copy_button_class = ''
 		writeProgressLog('\n----------------------------------------\n')
 		writeProgressLog('유튜브 채널 영상 목록 가져오기를 마쳤습니다.\n')
 		result_json = JSON.stringify(playlist, null, 4)
@@ -170,10 +170,10 @@ const copyResultJson = () => {
 function toggleHowManyVideos() {
 	if(checkbox.checked) {
 		get_all_text_class = ''
-		num_of_videos_class = 'hidden';
+		num_of_videos_class = 'hidden'
 	} else {
 		get_all_text_class = 'vague_text'
-		num_of_videos_class = '';
+		num_of_videos_class = ''
 	}
 }
 
