@@ -5,7 +5,7 @@ let api_key = ''
 let playlist_id = ''
 let progress_log = ''
 let result_json = ''
-let copy_button = 'hidden';
+let copy_button_class = 'hidden';
 let api_key_input_msg = '';
 let playlist_id_input_msg = '';
 let copy_result_msg = '';
@@ -14,6 +14,7 @@ let api_key_input
 let playlist_id_input
 let interval
 
+const IS_DEBUG_MODE = !true
 const PAGE_TITLE = '유튜브 채널 동영상 전체목록 가져오기'
 const URL_PREFIX = "https://www.googleapis.com/youtube/v3/playlistItems?"
 const playlist = { videos: [] }
@@ -93,14 +94,14 @@ function getVideoList(body) {
 function checkKeepGoing(result) {
 	option_params['pageToken'] = result.nextPageToken
 	keep_going = (playlist['videos'].length < result.pageInfo.totalResults)
-	// console.log({
-	// 	'number of videos': playlist['videos'].length,
-	// 	'keep_going': keep_going,
-	// 	'result.nextPageToken': result.nextPageToken,
-	// })
+	IS_DEBUG_MODE && console.log({
+		'number of videos': playlist['videos'].length,
+		'keep_going': keep_going,
+		'nextPageToken': result.nextPageToken,
+	})
 	if (!keep_going) {
 		clearInterval(interval)
-		copy_button = '';
+		copy_button_class = '';
 		writeProgressLog('\n----------------------------------------\n')
 		writeProgressLog('유튜브 채널 영상 목록 가져오기를 마쳤습니다.\n')
 		result_json = JSON.stringify(playlist)
@@ -140,7 +141,7 @@ function writeProgressLog(message) {
 			YouTube Channel List ID: <input type="text" bind:value={playlist_id} bind:this={playlist_id_input}> <span class="input_msg">{playlist_id_input_msg}</span>
 		</div>
 		<button on:click={startIntervalFetch}>영상 목록 가져오기</button>
-		<button on:click={copyResultJson} class={copy_button}>json 내용을 클립보드에 복사하기</button> <span class="copy_result_msg">{copy_result_msg}</span>
+		<button on:click={copyResultJson} class={copy_button_class}>json 내용을 클립보드에 복사하기</button> <span class="copy_result_msg">{copy_result_msg}</span>
 		<div id="clipboard"></div>
 	</div>
 	<div>
