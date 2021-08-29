@@ -5,37 +5,34 @@ let api_key = ''
 let playlist_id = ''
 let progress_log = ''
 let result_json = ''
+let how_many_videos = 50;
+let max_videos = -1;
+let num_of_videos_class = 'hidden';
 let copy_button_class = 'hidden';
 let api_key_input_msg = '';
 let playlist_id_input_msg = '';
 let copy_result_msg = '';
+let get_all_text_class = '';
 let keep_going = true
 let api_key_input
 let playlist_id_input
+let checkbox
 let interval
 
 const IS_DEBUG_MODE = !true
-const PAGE_TITLE = '유튜브 채널 동영상 전체목록 가져오기'
+const PAGE_TITLE = '유튜브 채널 동영상 목록 가져오기'
 const URL_PREFIX = "https://www.googleapis.com/youtube/v3/playlistItems?"
 const playlist = { videos: [] }
+const DEFAULT_MAX_RESULTS = 50
 
 const option_params = {
 	part		: "snippet",
 	playlistId	: "",
 	key			: "",
-	maxResults	: 50
+	maxResults	: DEFAULT_MAX_RESULTS
 }
 const FETCH_OPTIONS = {
 	method: 'GET',
-}
-
-const copyResultJson = () => {
-	const app = new CopyClipBoard({
-		target: document.getElementById('clipboard'),
-		props: { result_json },
-	})
-	copy_result_msg = '클립보드에 복사되었습니다.'
-	app.$destroy()
 }
 
 function startIntervalFetch() {
@@ -54,16 +51,35 @@ function isInputOk() {
 		api_key_input_msg = 'API Key를 입력해주세요.'
 		return false
 	}
-	api_key_input_msg = ''
 	if(playlist_id.trim().length < 5) {
 		playlist_id_input.focus()
 		playlist_id_input_msg = 'YouTube Channel List ID를 입력해주세요.'
 		return false
 	}
+	if(checkbox.checked) {
+		max_videos = -1
+		option_params['maxResults'] = DEFAULT_MAX_RESULTS
+	} else {
+		max_videos = how_many_videos
+		if(how_many_videos < DEFAULT_MAX_RESULTS) {
+			option_params['maxResults'] = how_many_videos
+		}
+	}
+	initializeAll()
+	return true
+}
+
+function initializeAll() {
+	api_key_input_msg = ''
 	playlist_id_input_msg = ''
+	copy_result_msg = '';
+	copy_button_class = 'hidden';
+	progress_log = ''
+	result_json = ''
+	option_params['pageToken'] = ''
 	option_params['key'] = api_key
 	option_params['playlistId'] = playlist_id
-	return true
+	playlist['videos'] = []
 }
 
 function getURL() {
@@ -83,17 +99,25 @@ function sendRequest() {
 
 function getVideoList(body) {
 	const result = JSON.parse(body)
-	result.items.forEach(item => {
-		const video_info = getVideoInfo(item)
-		playlist['videos'].length > 1 && writeProgressLog(', ')
-		writeProgressLog(video_info.position + 1)
-	})
-	checkKeepGoing(result)
+	try {
+		result.items.forEach(item => {
+			const video_info = getVideoInfo(item)
+			playlist['videos'].length > 1 && writeProgressLog(', ')
+			writeProgressLog(video_info.position + 1)
+		})
+		checkKeepGoing(result)
+	} catch (e) {
+		console.log({
+			'result.items': result.items
+		})
+		console.log(e)
+	}
 }
 
 function checkKeepGoing(result) {
 	option_params['pageToken'] = result.nextPageToken
-	keep_going = (playlist['videos'].length < result.pageInfo.totalResults)
+	const total_results = max_videos > 0 ? max_videos : result.pageInfo.totalResults
+	keep_going = (playlist['videos'].length < total_results)
 	IS_DEBUG_MODE && console.log({
 		'number of videos': playlist['videos'].length,
 		'keep_going': keep_going,
@@ -122,6 +146,25 @@ function getVideoInfo(item) {
 	return video_info
 }
 
+const copyResultJson = () => {
+	const app = new CopyClipBoard({
+		target: document.getElementById('clipboard'),
+		props: { result_json },
+	})
+	copy_result_msg = '클립보드에 복사되었습니다.'
+	app.$destroy()
+}
+
+function toggleHowManyVideos() {
+	if(checkbox.checked) {
+		get_all_text_class = ''
+		num_of_videos_class = 'hidden';
+	} else {
+		get_all_text_class = 'vague_text'
+		num_of_videos_class = '';
+	}
+}
+
 function writeProgressLog(message) {
 	progress_log += message
 }
@@ -140,6 +183,8 @@ function writeProgressLog(message) {
 		<div>
 			YouTube Channel List ID: <input type="text" bind:value={playlist_id} bind:this={playlist_id_input}> <span class="input_msg">{playlist_id_input_msg}</span>
 		</div>
+		<input type="checkbox" bind:this={checkbox} checked on:click={toggleHowManyVideos} class="checkbox_class"> <span class={get_all_text_class}>전체</span>
+		<span class={num_of_videos_class}>최근 <input type="number" bind:value={how_many_videos} min="1" class="input_number">개</span>
 		<button on:click={startIntervalFetch}>영상 목록 가져오기</button>
 		<button on:click={copyResultJson} class={copy_button_class}>json 내용을 클립보드에 복사하기</button> <span class="copy_result_msg">{copy_result_msg}</span>
 		<div id="clipboard"></div>
@@ -170,6 +215,17 @@ textarea {
 	width: 100%;
 	height: 250px;
 	display: block;
+}
+.checkbox_class {
+	width: 20px;
+}
+.vague_text {
+	color: silver;
+	text-decoration: line-through;
+}
+.input_number {
+	width: 70px;
+	text-align: end;
 }
 .hidden {
 	display: none;
