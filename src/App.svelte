@@ -14,6 +14,7 @@ let apiKeyInput
 let playlistIdInput
 let interval
 
+const PAGE_TITLE = '유튜브 채널 동영상 전체목록 가져오기'
 const URL_PREFIX = "https://www.googleapis.com/youtube/v3/playlistItems?"
 const playlist = { videos: [] }
 
@@ -39,7 +40,8 @@ const copyResultJson = () => {
 function startIntervalFetch() {
 	if( !is_input_ok() )
 		return
-	write_progress_log('유튜브 채널 영상 목록을 가져오기 시작합니다...\n')
+	write_progress_log('유튜브 채널 영상 목록을 가져오기 시작합니다.\n')
+	write_progress_log('----------------------------------------\n')
 	interval = setInterval(() => {
 		sendRequest()
 	}, 3000)
@@ -83,7 +85,8 @@ function get_video_list(body) {
 	const items = result.items
 	for (let index in items) {
 		const video_info = get_video_info(items[index])
-		write_progress_log(`${video_info.position}, `)
+		playlist['videos'].length > 1 && write_progress_log(', ')
+		write_progress_log(video_info.position + 1)
 	}
 	check_keep_going(result)
 }
@@ -99,7 +102,8 @@ function check_keep_going(result) {
 	if (!keep_going) {
 		clearInterval(interval)
 		copy_button = '';
-		write_progress_log('\n유튜브 채널 영상 목록을 가져오기를 마쳤습니다.\n')
+		write_progress_log('\n----------------------------------------\n')
+		write_progress_log('유튜브 채널 영상 목록 가져오기를 마쳤습니다.\n')
 		result_json = JSON.stringify(playlist)
 	}
 }
@@ -124,32 +128,47 @@ function write_progress_log(message) {
 </script>
 
 <svelte:head>
-	<title>유튜브 채널 동영상 전체목록 가져오기</title>
+	<title>{PAGE_TITLE}</title>
 </svelte:head>
 
-<div class="form">
-    <div>
-        YouTube Data API v3 - API Key: <input type="password" bind:value={api_key} bind:this={apiKeyInput}> <span class="input_msg">{apiKeyInputMsg}</span>
-    </div>
-    <div>
-        YouTube Channel List ID: <input type="text" bind:value={playlist_id} bind:this={playlistIdInput}> <span class="input_msg">{playlistIdInputMsg}</span>
-    </div>
-    <button on:click={startIntervalFetch}>영상 리스트 가져오기 시작</button>
-	<button on:click={copyResultJson} class={copy_button}>json 내용 클립보드에 복사하기</button> <span class="copy_result_msg">{copyResultMsg}</span>
-	<div id="clipboard"></div>
-</div>
-<div>
-    <textarea readonly>{progress_log}</textarea>
-    <textarea readonly>{result_json}</textarea>
-</div>
+<main>
+	<header>{PAGE_TITLE}</header>
+	<div class="form">
+		<div>
+			YouTube Data API v3 - API Key: <input type="password" bind:value={api_key} bind:this={apiKeyInput}> <span class="input_msg">{apiKeyInputMsg}</span>
+		</div>
+		<div>
+			YouTube Channel List ID: <input type="text" bind:value={playlist_id} bind:this={playlistIdInput}> <span class="input_msg">{playlistIdInputMsg}</span>
+		</div>
+		<button on:click={startIntervalFetch}>영상 리스트 가져오기</button>
+		<button on:click={copyResultJson} class={copy_button}>json 내용을 클립보드에 복사하기</button> <span class="copy_result_msg">{copyResultMsg}</span>
+		<div id="clipboard"></div>
+	</div>
+	<div>
+		<textarea readonly>{progress_log}</textarea>
+		<textarea readonly>{result_json}</textarea>
+	</div>
+</main>
 
 <style>
+main {
+	padding: 1em;
+}
+header {
+	width: 100%;
+	font-size: 1.5em;
+	font-weight: bolder;
+	margin-bottom: 0.6em;
+}
 button {
     cursor: pointer;
 }
+input {
+	width: 300px;
+}
 textarea {
 	width: 100%;
-	height: 300px;
+	height: 250px;
 	display: block;
 }
 .hidden {
