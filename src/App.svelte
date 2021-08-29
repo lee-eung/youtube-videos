@@ -94,11 +94,11 @@ function get_video_list(body) {
 function check_keep_going(result) {
 	optionParams['pageToken'] = result.nextPageToken
 	keep_going = (playlist['videos'].length < result.pageInfo.totalResults)
-	console.log({
-		'number of videos': playlist['videos'].length,
-		'keep_going': keep_going,
-		'result.nextPageToken': result.nextPageToken,
-	})
+	// console.log({
+	// 	'number of videos': playlist['videos'].length,
+	// 	'keep_going': keep_going,
+	// 	'result.nextPageToken': result.nextPageToken,
+	// })
 	if (!keep_going) {
 		clearInterval(interval)
 		copy_button = '';
