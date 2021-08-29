@@ -15,7 +15,7 @@ let playlistIdInput
 let interval
 
 const URL_PREFIX = "https://www.googleapis.com/youtube/v3/playlistItems?"
-const videos = { videos: [] }
+const playlist = { videos: [] }
 
 const optionParams = {
 	part		: "snippet",
@@ -82,8 +82,7 @@ function get_video_list(body) {
 	const result = JSON.parse(body)
 	const items = result.items
 	for (let index in items) {
-		// youtube downloader에 videoId 넘기면 됨.
-		const video_info = get_video_info(items, index)
+		const video_info = get_video_info(items[index])
 		write_progress_log(`${video_info.position}, `)
 	}
 	check_keep_going(result)
@@ -91,9 +90,9 @@ function get_video_list(body) {
 
 function check_keep_going(result) {
 	optionParams['pageToken'] = result.nextPageToken
-	keep_going = (videos['videos'].length < result.pageInfo.totalResults)
+	keep_going = (playlist['videos'].length < result.pageInfo.totalResults)
 	console.log({
-		'videos.length': videos['videos'].length,
+		'number of videos': playlist['videos'].length,
 		'keep_going': keep_going,
 		'result.nextPageToken': result.nextPageToken,
 	})
@@ -101,22 +100,21 @@ function check_keep_going(result) {
 		clearInterval(interval)
 		copy_button = '';
 		write_progress_log('\n유튜브 채널 영상 목록을 가져오기를 마쳤습니다.\n')
-		console.log(videos)
-		result_json = JSON.stringify(videos)
+		result_json = JSON.stringify(playlist)
 	}
 }
 
-function get_video_info(items, index) {
+function get_video_info(item) {
 	const video_info = {
-		position: items[index].snippet.position,
-		publishedAt: items[index].snippet.publishedAt,
-		videoId: items[index].snippet.resourceId.videoId,
-		videoURL: `https://www.youtube.com/watch?v=${items[index].snippet.resourceId.videoId}`,
-		thumbnail: items[index].snippet.thumbnails.high.url,
-		title: items[index].snippet.title,
-		description: items[index].snippet.description,
+		position: item.snippet.position,
+		publishedAt: item.snippet.publishedAt,
+		videoId: item.snippet.resourceId.videoId,
+		videoURL: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+		thumbnail: item.snippet.thumbnails.high.url,
+		title: item.snippet.title,
+		description: item.snippet.description,
 	}
-	videos['videos'].push(video_info)
+	playlist['videos'].push(video_info)
 	return video_info
 }
 
@@ -137,12 +135,12 @@ function write_progress_log(message) {
         YouTube Channel List ID: <input type="text" bind:value={playlist_id} bind:this={playlistIdInput}> <span class="input_msg">{playlistIdInputMsg}</span>
     </div>
     <button on:click={startIntervalFetch}>영상 리스트 가져오기 시작</button>
-	<button on:click={copyResultJson} class={copy_button}>json 내용 클립보드에 복사하기</button> {copyResultMsg}
+	<button on:click={copyResultJson} class={copy_button}>json 내용 클립보드에 복사하기</button> <span class="copy_result_msg">{copyResultMsg}</span>
 	<div id="clipboard"></div>
 </div>
 <div>
-    <textarea>{progress_log}</textarea>
-    <textarea>{result_json}</textarea>
+    <textarea readonly>{progress_log}</textarea>
+    <textarea readonly>{result_json}</textarea>
 </div>
 
 <style>
@@ -159,5 +157,8 @@ textarea {
 }
 .input_msg {
 	color: red;
+}
+.copy_result_msg {
+	color: blue;
 }
 </style>
