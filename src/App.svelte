@@ -76,18 +76,17 @@ function getURL() {
 function sendRequest() {
 	fetch(getURL(), FETCH_OPTIONS)
 		.then(response => response.text())
-		.then(result => getVideoList(result))
+		.then(body => getVideoList(body))
 		.catch(error => console.log('error', error))
 }
 
 function getVideoList(body) {
 	const result = JSON.parse(body)
-	const items = result.items
-	for (let index in items) {
-		const video_info = getVideoInfo(items[index])
+	result.items.forEach(item => {
+		const video_info = getVideoInfo(item)
 		playlist['videos'].length > 1 && writeProgressLog(', ')
 		writeProgressLog(video_info.position + 1)
-	}
+	})
 	checkKeepGoing(result)
 }
 
@@ -140,7 +139,7 @@ function writeProgressLog(message) {
 		<div>
 			YouTube Channel List ID: <input type="text" bind:value={playlist_id} bind:this={playlist_id_input}> <span class="input_msg">{playlist_id_input_msg}</span>
 		</div>
-		<button on:click={startIntervalFetch}>영상 리스트 가져오기</button>
+		<button on:click={startIntervalFetch}>영상 목록 가져오기</button>
 		<button on:click={copyResultJson} class={copy_button}>json 내용을 클립보드에 복사하기</button> <span class="copy_result_msg">{copy_result_msg}</span>
 		<div id="clipboard"></div>
 	</div>
